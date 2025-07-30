@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% load tickets_filters %}
+
+{% block title %}Ticket Trend Analysis{% endblock %}
+
+{% block content %}
+<div class="flex flex-col items-center justify-center min-h-[calc(100vh-160px)]"> {# Ensure outer container stacks vertically #}
+    <div class="bg-white p-8 rounded-lg shadow-xl mb-8 w-full max-w-4xl mx-auto"> {# Added mx-auto for centering #}
+        <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Ticket Volume & Trends</h2>
+
+        <div class="mb-6 text-center">
+            <span class="text-gray-700 font-medium mr-2">View by:</span>
+            <a href="{% url 'ticket_trend_dashboard' %}?period=week" class="px-4 py-2 rounded-md {% if period == 'week' %}bg-blue-600 text-white{% else %}bg-gray-200 text-gray-800 hover:bg-gray-300{% endif %} transition duration-300">Last Week</a>
+            <a href="{% url 'ticket_trend_dashboard' %}?period=month" class="ml-2 px-4 py-2 rounded-md {% if period == 'month' %}bg-blue-600 text-white{% else %}bg-gray-200 text-gray-800 hover:bg-gray-300{% endif %} transition duration-300">Last Month</a>
+            <a href="{% url 'ticket_trend_dashboard' %}?period=quarter" class="ml-2 px-4 py-2 rounded-md {% if period == 'quarter' %}bg-blue-600 text-white{% else %}bg-gray-200 text-gray-800 hover:bg-gray-300{% endif %} transition duration-300">Last Quarter</a>
+            <a href="{% url 'ticket_trend_dashboard' %}?period=year" class="ml-2 px-4 py-2 rounded-md {% if period == 'year' %}bg-blue-600 text-white{% else %}bg-gray-200 text-gray-800 hover:bg-gray-300{% endif %} transition duration-300">Last Year</a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="bg-gray-50 p-4 rounded-md border border-gray-200 relative" style="height: 300px;"> {# Added relative and fixed height #}
+                <h3 class="text-xl font-semibold text-gray-800 mb-2 text-center">Current Status Distribution</h3>
+                <canvas id="statusDistributionChart" class="w-full h-full"></canvas> {# canvas takes full height #}
+            </div>
+            <div class="bg-gray-50 p-4 rounded-md border border-gray-200 relative" style="height: 300px;"> {# Added relative and fixed height #}
+                <h3 class="text-xl font-semibold text-gray-800 mb-2 text-center">Current Priority Distribution</h3>
+                <canvas id="priorityDistributionChart" class="w-full h-full"></canvas> {# canvas takes full height #}
+            </div>
+        </div>
+
+        <div class="mt-8 bg-gray-50 p-4 rounded-md border border-gray-200 relative" style="height: 400px;"> {# Added relative and fixed height #}
+            <h3 class="text-xl font-semibold text-gray-800 mb-2 text-center">Tickets Created Over Time</h3>
+            <canvas id="ticketsCreatedChart" class="w-full h-full"></canvas> {# canvas takes full height #}
+        </div>
+
+        <div class="mt-8 bg-gray-50 p-4 rounded-md border border-gray-200 relative" style="height: 400px;"> {# Added relative and fixed height #}
+            <h3 class="text-xl font-semibold text-gray-800 mb-2 text-center">Tickets Closed Over Time</h3>
+            <canvas id="ticketsClosedChart" class="w-full h-full"></canvas> {# canvas takes full height #}
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            // Parse JSON data passed from Django. This is key for performance.
+            const createdLabels = JSON.parse('{{ created_labels|escapejs }}');
+            const createdCounts = JSON.parse('{{ created_counts|escapejs }}');
+            const closedLabels = JSON.parse('{{ closed_labels|escapejs }}');
+            const closedCounts = JSON.parse('{{ closed_counts|escapejs }}');
+            const statusLabels = JSON.parse('{{ status_labels|escapejs }}');
+            const statusCounts = JSON.parse('{{ status_counts|escapejs }}');
+            const priorityLabels = JSON.parse('{{ priority_labels|escapejs }}');
+            const priorityCounts = JSON.parse('{{ priority_counts|escapejs }}');
+
+            // Chart.js initialization functions
+            function createDoughnutChart(elementId, labels, data, title) {
+                new Chart(document.getElementById(elementId).getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                            backgroundColor: [
+                                'rgba(59, 130, 246, 0.7)', // blue-500
+                                'rgba(251, 191, 36, 0.7)', // yellow-500
+                                'rgba(168, 85, 247, 0.7)', // purple-500
+                                'rgba(249, 115, 22, 0.7)', // orange-500
+                                'rgba(16, 185, 129, 0.7)', // green-500
+                                'rgba(239, 68, 68, 0.7)',  // red-500
+                                'rgba(107, 114, 128, 0.7)' // gray-500
+                            ],
+                        }]
+                    },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, // Crucial for performance
+                        plugins: { 
+                            title: { display: false, text: title } 
+                        } 
+                    }
+                });
+            }
+
+            function createLineChart(elementId, labels, data, labelText, borderColor, backgroundColor) {
+                new Chart(document.getElementById(elementId).getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: labelText,
+                            data: data,
+                            borderColor: borderColor,
+                            backgroundColor: backgroundColor,
+                            tension: 0.3,
+                            fill: true
+                        }]
+                    },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false, // Crucial for performance
+                        scales: { 
+                            y: { beginAtZero: true } 
+                        } 
+                    }
+                });
+            }
+
+            // Initialize Charts
+            createDoughnutChart('statusDistributionChart', statusLabels, statusCounts, 'Current Status Distribution');
+            createDoughnutChart('priorityDistributionChart', priorityLabels, priorityCounts, 'Current Priority Distribution'); 
+
+            createLineChart('ticketsCreatedChart', createdLabels, createdCounts, 'Tickets Created', 'rgba(59, 130, 246, 1)', 'rgba(59, 130, 246, 0.2)');
+            createLineChart('ticketsClosedChart', closedLabels, closedCounts, 'Tickets Closed', 'rgba(16, 185, 129, 1)', 'rgba(16, 185, 129, 0.2)');
+
+        </script>
+    </div>
+{% endblock %}

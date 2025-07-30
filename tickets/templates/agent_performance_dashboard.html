@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load tickets_filters %}
+
+{% block title %}Agent Performance Dashboard{% endblock %}
+
+{% block content %}
+<div class="flex flex-col items-center justify-center min-h-[calc(100vh-160px)]"> {# Ensure outer container stacks vertically #}
+    <div class="bg-white p-8 rounded-lg shadow-xl mb-8 w-full max-w-4xl mx-auto"> {# Added mx-auto for centering #}
+        <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Agent Performance Overview</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="bg-gray-50 p-4 rounded-md border border-gray-200">
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">System-wide SLA Compliance</h3>
+                <p class="text-lg text-gray-700">Response SLA Met: <span class="font-bold text-blue-600">{{ sla_response_compliance }}%</span></p>
+                <p class="text-lg text-gray-700">Resolution SLA Met: <span class="font-bold text-purple-600">{{ sla_resolution_compliance }}%</span></p>
+                <p class="text-sm text-gray-500">Total Closed Tickets: {{ total_closed_tickets }}</p>
+            </div>
+            {# You could add more system-wide metrics here #}
+        </div>
+
+        <h3 class="text-2xl font-bold text-gray-800 mb-4">Individual Agent Performance</h3>
+        {% if agent_stats %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border border-gray-200 rounded-md">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tl-md">Agent</th>
+                            <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Active Tickets</th>
+                            <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Closed Tickets</th>
+                            <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tr-md">Avg. Resolution Time (Mins)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        {% for agent in agent_stats %}
+                            <tr>
+                                <td class="py-4 px-6 whitespace-nowrap text-sm font-medium text-gray-900">{{ agent.username }}</td>
+                                <td class="py-4 px-6 whitespace-nowrap text-sm text-gray-700">{{ agent.active_tickets_count }}</td>
+                                <td class="py-4 px-6 whitespace-nowrap text-sm text-gray-700">{{ agent.closed_tickets_count }}</td>
+                                <td class="py-4 px-6 whitespace-nowrap text-sm text-gray-700">
+                                    {% if agent.avg_resolution_minutes is not None %}
+                                        {{ agent.avg_resolution_minutes }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {# Chart Container #}
+            <div class="mt-8 bg-gray-50 p-4 rounded-md border border-gray-200 relative" style="height: 400px;"> {# Added relative and fixed height for chart container #}
+                <h3 class="text-2xl font-bold text-gray-800 mb-4 text-center">Visualizations</h3>
+                <canvas id="agentTicketsChart" class="w-full h-full"></canvas> {# canvas now takes full height of parent #}
+                
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                <script>
+                    const agentNames = [{% for agent in agent_stats %}'{{ agent.username }}'{% if not forloop.last %},{% endif %}{% endfor %}];
+                    const activeTickets = [{% for agent in agent_stats %}{{ agent.active_tickets_count }}{% if not forloop.last %},{% endif %}{% endfor %}];
+                    const closedTickets = [{% for agent in agent_stats %}{{ agent.closed_tickets_count }}{% if not forloop.last %},{% endif %}{% endfor %}];
+
+                    const ctx = document.getElementById('agentTicketsChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: agentNames,
+                            datasets: [
+                                {
+                                    label: 'Active Tickets',
+                                    data: activeTickets,
+                                    backgroundColor: 'rgba(59, 130, 246, 0.6)', // Tailwind blue-500
+                                    borderColor: 'rgba(59, 130, 246, 1)',
+                                    borderWidth: 1
+                                },
+                                {
+                                    label: 'Closed Tickets',
+                                    data: closedTickets,
+                                    backgroundColor: 'rgba(16, 185, 129, 0.6)', // Tailwind green-500
+                                    borderColor: 'rgba(16, 185, 129, 1)',
+                                    borderWidth: 1
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false, // Crucial for performance and responsiveness
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                </script>
+            </div>
+        {% else %}
+            <p class="text-center text-gray-600">No agent data available.</p>
+        {% endif %}
+    </div>
+{% endblock %}

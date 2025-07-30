@@ -1,0 +1,74 @@
+{% extends 'base.html' %} {# Corrected from 'base.html' to 'core/base.html' #}
+
+{% block title %}Update Ticket: {{ ticket.title }}{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-center min-h-[calc(100vh-160px)]">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-2xl">
+        <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Update Ticket: {{ ticket.title }}</h2>
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            {# Only show 'Assigned To' field if the logged-in user is an admin #}
+            {% if user.role == 'admin' %}
+            <div>
+                <label for="assigned_to" class="block text-sm font-medium text-gray-700 mb-1">Assigned To</label>
+                <select id="assigned_to" name="assigned_to"
+                        class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    <option value="">Unassigned</option>
+                    {% for agent in agents %}
+                        <option value="{{ agent.pk }}" {% if ticket.assigned_to == agent %}selected{% endif %}>
+                            {{ agent.username }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% else %}
+            {# For agents, display the assigned agent as read-only text #}
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Assigned To</label>
+                <p class="mt-1 block w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm text-gray-700">
+                    {% if ticket.assigned_to %}
+                        {{ ticket.assigned_to.username }}
+                    {% else %}
+                        Unassigned
+                    {% endif %}
+                </p>
+                {# Add a hidden input to ensure the assigned_to value is still sent for agents #}
+                {# This is important so the signal doesn't try to re-assign it #}
+                <input type="hidden" name="assigned_to" value="{{ ticket.assigned_to.pk|default:'' }}">
+            </div>
+            {% endif %}
+
+            <div>
+                <label for="priority" class="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                <select id="priority" name="priority" required
+                        class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    {% for choice_value, choice_label in ticket.PRIORITY_CHOICES %}
+                        <option value="{{ choice_value }}" {% if ticket.priority == choice_value %}selected{% endif %}>
+                            {{ choice_label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select id="status" name="status" required
+                        class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    {% for choice_value, choice_label in ticket.STATUS_CHOICES %}
+                        <option value="{{ choice_value }}" {% if ticket.status == choice_value %}selected{% endif %}>
+                            {{ choice_label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <button type="submit"
+                        class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-300">
+                    Update Ticket
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
