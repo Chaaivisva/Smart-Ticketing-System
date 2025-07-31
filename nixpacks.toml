@@ -1,0 +1,6 @@
+    [start]
+    cmd = "./wait-for-db.sh"
+
+    [phases.setup]
+    nixPkgs = ["...", "postgresql"]
+    
