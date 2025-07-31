@@ -1,8 +1,7 @@
 # This tells Nixpacks to use the specified packages during the build process.
-# Packages with hyphens, like "libpq-dev", must be in double quotes.
 [phases.setup]
-nixPkgs = ["python3", "postgresql", "libpq-dev"]
+nixPkgs = ["python3", "postgresql"]
 
 # The start command to run after the build is complete.
 [start]
-cmd = "./wait-for-db.sh ${PGHOST} python manage.py migrate --noinput && python manage.py collectstatic --noinput && gunicorn your_project_name.wsgi:application"
+cmd = "./wait-for-db.sh ${PGHOST} python manage.py migrate --noinput && python manage.py collectstatic --noinput && gunicorn smart_ticket.wsgi:application"
