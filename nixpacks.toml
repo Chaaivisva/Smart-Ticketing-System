@@ -1,4 +1,5 @@
 # This tells Nixpacks to use the specified packages during the build process.
+# Packages with hyphens, like "libpq-dev", must be in double quotes.
 [phases.setup]
 nixPkgs = ["python3", "postgresql", "libpq-dev"]
 
