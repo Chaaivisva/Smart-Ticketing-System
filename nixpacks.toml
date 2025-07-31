@@ -1,6 +1,7 @@
-    [start]
-    cmd = "./wait-for-db.sh"
+# This tells Nixpacks to use the specified packages during the build process.
+[phases.setup]
+nixPkgs = ["python3", "postgresql"]
 
-    [phases.setup]
-    nixPkgs = ["...", "postgresql"]
-    
+# The start command to run after the build is complete.
+[start]
+cmd = "./wait-for-db.sh ${PGHOST} python manage.py migrate --noinput && python manage.py collectstatic --noinput && gunicorn your_project_name.wsgi:application"
