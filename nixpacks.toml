@@ -1,6 +1,6 @@
 # This tells Nixpacks to use the specified packages during the build process.
 [phases.setup]
-nixPkgs = ["python3", "postgresql"]
+nixPkgs = ["python3", "postgresql", "libpq-dev"]
 
 # The start command to run after the build is complete.
 [start]
