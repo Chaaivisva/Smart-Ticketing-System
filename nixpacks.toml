@@ -2,7 +2,7 @@
 # Using a specific version of postgresql (e.g., postgresql_15) is more reliable
 # as it includes all the necessary development headers.
 [phases.setup]
-nixPkgs = ["python3", "postgresql_15"]
+nixPkgs = ["python3", "postgresql_15", "gcc"]
 
 # The start command to run after the build is complete.
 [start]
