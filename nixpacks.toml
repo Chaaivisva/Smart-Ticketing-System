@@ -2,7 +2,7 @@
 # We no longer need to install postgresql or gcc because we're using
 # the pre-compiled psycopg2-binary package.
 [phases.setup]
-nixPkgs = ["python3"]
+nixPkgs = ["python3", "postgresql_client"]
 
 # The start command to run after the build is complete.
 [start]
