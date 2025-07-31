@@ -1,8 +1,8 @@
-# This tells Nixpacks to use the specified packages during the build process.
-# Using a specific version of postgresql (e.g., postgresql_15) is more reliable
-# as it includes all the necessary development headers.
+# This file tells Nixpacks to set up the build environment.
+# We no longer need to install postgresql or gcc because we're using
+# the pre-compiled psycopg2-binary package.
 [phases.setup]
-nixPkgs = ["python3", "postgresql_15", "gcc"]
+nixPkgs = ["python3"]
 
 # The start command to run after the build is complete.
 [start]
