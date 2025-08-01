@@ -3,12 +3,12 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<div class="bg-white p-8 rounded-lg shadow-xl">
-    <div class="flex justify-between items-center mb-6">
-        <h2 class="text-3xl font-bold text-gray-800">Your Tickets</h2>
+<div class="bg-white p-4 sm:p-8 rounded-lg shadow-xl mb-8 w-full max-w-4xl mx-auto">
+    <div class="flex flex-col sm:flex-row justify-between items-center mb-6 space-y-4 sm:space-y-0">
+        <h2 class="text-2xl sm:text-3xl font-bold text-gray-800">Your Tickets</h2>
         {% if user.role == 'customer' %}
             <a href="{% url 'create_ticket' %}"
-               class="bg-blue-600 text-white px-6 py-3 rounded-md shadow-md hover:bg-blue-700 transition duration-300 text-lg font-medium">
+               class="w-full sm:w-auto text-center bg-blue-600 text-white px-6 py-3 rounded-md shadow-md hover:bg-blue-700 transition duration-300 text-lg font-medium">
                 Create New Ticket
             </a>
         {% endif %}
