@@ -168,10 +168,10 @@ CELERY_TIMEZONE = 'Asia/Kolkata'
 CELERY_BEAT_SCHEDULE = {
     'check-overdue-tickets-every-minute': { 
         'task': 'tickets.tasks.check_overdue_tickets',
-        'schedule': timedelta(minutes=1),
+        'schedule': timedelta(minutes=30),
     },
     'assign-unassigned-tickets-every-minute': { 
         'task': 'tickets.tasks.assign_unassigned_tickets',
-        'schedule': timedelta(minutes=1), 
+        'schedule': timedelta(minutes=30), 
     },
 }
